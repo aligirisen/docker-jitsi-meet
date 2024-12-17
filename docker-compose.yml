@@ -6,7 +6,7 @@ services:
         image: jitsi/web:${JITSI_IMAGE_VERSION:-unstable}
         restart: ${RESTART_POLICY:-unless-stopped}
         ports:
-            - '${HTTP_PORT}:80'
+            - '${HTTP_PORT}:8000'
             - '${HTTPS_PORT}:443'
         volumes:
             - ${CONFIG}/web:/config:Z
@@ -255,18 +255,18 @@ services:
             - MATRIX_UVS_SYNC_POWER_LEVELS
             - MATRIX_LOBBY_BYPASS
             - LOG_LEVEL
-            - LDAP_AUTH_METHOD
-            - LDAP_BASE
-            - LDAP_BINDDN
-            - LDAP_BINDPW
-            - LDAP_FILTER
+            - LDAP_AUTH_METHOD=bind ##
+            - LDAP_BASE="dc=pardus,dc=showcase" ##
+            - LDAP_BINDDN="cn=admin,dc=pardus,dc=showcase" ##
+            - LDAP_BINDPW=admin ##
+            - LDAP_FILTER=(uid=%u) ##
             - LDAP_VERSION
             - LDAP_TLS_CIPHERS
             - LDAP_TLS_CHECK_PEER
             - LDAP_TLS_CACERT_FILE
             - LDAP_TLS_CACERT_DIR
             - LDAP_START_TLS
-            - LDAP_URL
+            - LDAP_URL=ldap://127.0.0.1 ##
             - LDAP_USE_TLS
             - MAX_PARTICIPANTS
             - PROSODY_ADMINS
