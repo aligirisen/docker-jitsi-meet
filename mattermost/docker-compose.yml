@@ -1,0 +1,43 @@
+version: "3.3"
+services:
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    container_name: mattermost-db
+    environment:
+      POSTGRES_USER: mattermost
+      POSTGRES_PASSWORD: mattermost
+      POSTGRES_DB: mattermost
+    volumes:
+      - mattermost_db_data:/var/lib/postgresql/data
+
+  app:
+    image: mattermost/mattermost-team-edition:latest
+    restart: unless-stopped
+    container_name: mattermost-app
+    depends_on:
+      - db
+    environment:
+      MM_SERVICESETTINGS_WEBSOCKETURL: http://161.9.194.160:8065
+      MM_SQLSETTINGS_DRIVERNAME: postgres
+      MM_SQLSETTINGS_DATASOURCE: postgres://mattermost:mattermost@db:5432/mattermost?sslmode=disable
+      MM_SERVICESETTINGS_SITEURL: http://161.9.194.160:8065
+    ports:
+      - "8065:8065"
+    volumes:
+      - mattermost_app_data:/mattermost/data
+      - mattermost_config:/mattermost/config
+      - mattermost_logs:/mattermost/logs
+      - mattermost_plugins:/mattermost/plugins
+      - mattermost_client_plugins:/mattermost/client/plugins
+      - mattermost_bleve:/mattermost/bleve-indexes
+
+volumes:
+  mattermost_db_data:
+  mattermost_app_data:
+  mattermost_config:
+  mattermost_logs:
+  mattermost_plugins:
+  mattermost_client_plugins:
+  mattermost_bleve:
+
