@@ -18,10 +18,10 @@ services:
     depends_on:
       - db
     environment:
-      MM_SERVICESETTINGS_WEBSOCKETURL: http://161.9.194.160:8065
+      MM_SERVICESETTINGS_WEBSOCKETURL: http://127.0.0.1:8065
       MM_SQLSETTINGS_DRIVERNAME: postgres
       MM_SQLSETTINGS_DATASOURCE: postgres://mattermost:mattermost@db:5432/mattermost?sslmode=disable
-      MM_SERVICESETTINGS_SITEURL: http://161.9.194.160:8065
+      MM_SERVICESETTINGS_SITEURL: http://127.0.0.1:8065
     ports:
       - "8065:8065"
     volumes:
