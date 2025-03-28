@@ -1,12 +1,41 @@
 version: '3.5'
-
 services:
-    # Frontend
+    db:
+        image: postgres:15
+        restart: unless-stopped
+        container_name: mattermost-db
+        environment:
+            POSTGRES_USER: mattermost
+            POSTGRES_PASSWORD: mattermost
+            POSTGRES_DB: mattermost
+        volumes:
+            - mattermost_db_data:/var/lib/postgresql/data
+
+    app:
+        image: mattermost/mattermost-team-edition:latest
+        restart: unless-stopped
+        container_name: mattermost-app
+        depends_on:
+            - db
+        environment:
+            MM_SERVICESETTINGS_WEBSOCKETURL: ${MATTERMOST_URL}
+            MM_SQLSETTINGS_DRIVERNAME: postgres
+            MM_SQLSETTINGS_DATASOURCE: postgres://mattermost:mattermost@db:5432/mattermost?sslmode=disable
+            MM_SERVICESETTINGS_SITEURL: ${MATTERMOST_URL}
+        ports:
+            - "8065:8065"
+        volumes:
+            - mattermost_app_data:/mattermost/data
+            - mattermost_config:/mattermost/config
+            - mattermost_logs:/mattermost/logs
+            - mattermost_plugins:/mattermost/plugins
+            - mattermost_client_plugins:/mattermost/client/plugins
+            - mattermost_bleve:/mattermost/bleve-indexes
     web:
         image: jitsi/web:${JITSI_IMAGE_VERSION:-unstable}
         restart: ${RESTART_POLICY:-unless-stopped}
         ports:
-            - '${HTTP_PORT}:8000'
+            - '${HTTP_PORT}:80'
             - '${HTTPS_PORT}:443'
         volumes:
             - ${CONFIG}/web:/config:Z
@@ -38,7 +67,6 @@ services:
             - DEPLOYMENTINFO_ENVIRONMENT_TYPE
             - DEPLOYMENTINFO_REGION
             - DEPLOYMENTINFO_SHARD
-            - DEPLOYMENTINFO_USERREGION
             - DESKTOP_SHARING_FRAMERATE_AUTO
             - DESKTOP_SHARING_FRAMERATE_MIN
             - DESKTOP_SHARING_FRAMERATE_MAX
@@ -63,6 +91,7 @@ services:
             - DYNAMIC_BRANDING_URL
             - ENABLE_ADAPTIVE_MODE
             - ENABLE_AUDIO_PROCESSING
+            - ENABLE_AUTOMATIC_GAIN_CONTROL
             - ENABLE_AUTH
             - ENABLE_AUTH_DOMAIN
             - ENABLE_BREAKOUT_ROOMS
@@ -121,6 +150,7 @@ services:
             - LETSENCRYPT_DOMAIN
             - LETSENCRYPT_EMAIL
             - LETSENCRYPT_USE_STAGING
+            - LETSENCRYPT_ACME_SERVER
             - MATOMO_ENDPOINT
             - MATOMO_SITE_ID
             - MICROSOFT_API_APP_CLIENT_ID
@@ -132,6 +162,7 @@ services:
             - PREFERRED_LANGUAGE
             - PUBLIC_URL
             - P2P_PREFERRED_CODEC
+            - P2P_STUN_SERVERS
             - RESOLUTION
             - RESOLUTION_MIN
             - RESOLUTION_WIDTH
@@ -255,18 +286,18 @@ services:
             - MATRIX_UVS_SYNC_POWER_LEVELS
             - MATRIX_LOBBY_BYPASS
             - LOG_LEVEL
-            - LDAP_AUTH_METHOD=bind ##
-            - LDAP_BASE="dc=pardus,dc=showcase" ##
-            - LDAP_BINDDN="cn=admin,dc=pardus,dc=showcase" ##
-            - LDAP_BINDPW=admin ##
-            - LDAP_FILTER=(uid=%u) ##
+            - LDAP_AUTH_METHOD
+            - LDAP_BASE
+            - LDAP_BINDDN
+            - LDAP_BINDPW
+            - LDAP_FILTER
             - LDAP_VERSION
             - LDAP_TLS_CIPHERS
             - LDAP_TLS_CHECK_PEER
             - LDAP_TLS_CACERT_FILE
             - LDAP_TLS_CACERT_DIR
             - LDAP_START_TLS
-            - LDAP_URL=ldap://127.0.0.1 ##
+            - LDAP_URL
             - LDAP_USE_TLS
             - MAX_PARTICIPANTS
             - PROSODY_ADMINS
@@ -302,6 +333,8 @@ services:
             - STUN_HOST
             - STUN_PORT
             - TURN_CREDENTIALS
+            - TURN_USERNAME
+            - TURN_PASSWORD
             - TURN_HOST
             - TURNS_HOST
             - TURN_PORT
@@ -362,6 +395,7 @@ services:
             - ENABLE_OCTO_SCTP
             - ENABLE_RECORDING
             - ENABLE_SCTP
+            - ENABLE_SHARED_DOCUMENT_RANDOM_NAME
             - ENABLE_TRANSCRIPTIONS
             - ENABLE_VISITORS
             - ENABLE_AUTO_LOGIN
@@ -379,6 +413,7 @@ services:
             - JICOFO_CONF_STRIP_SIMULCAST
             - JICOFO_CONF_SSRC_REWRITING
             - JICOFO_ENABLE_HEALTH_CHECKS
+            - JICOFO_ENABLE_ICE_FAILURE_DETECTION
             - JICOFO_ENABLE_REST
             - JICOFO_HEALTH_CHECKS_USE_PRESENCE
             - JICOFO_MAX_MEMORY
@@ -494,3 +529,12 @@ services:
 # Custom network so all services can communicate using a FQDN
 networks:
     meet.jitsi:
+volumes:
+  mattermost_db_data:
+  mattermost_app_data:
+  mattermost_config:
+  mattermost_logs:
+  mattermost_plugins:
+  mattermost_client_plugins:
+  mattermost_bleve:
+  mongodb_data: { driver: local }
